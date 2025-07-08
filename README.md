@@ -282,9 +282,8 @@ En **DArrayLib**, cada módulo se desarrolla siguiendo un ciclo TDD estricto par
 ---
 
 
- **cómo importar y usar** la librería DArrayLib en **Java** y en **Python**, partiendo de la estructura y empaquetado que ya tienes:
+## **Cómo importar y usar** la librería DArrayLib en **Java** y en **Python**:
 
----
 
 ## 🟢 En Java
 
@@ -466,7 +465,46 @@ Todo eso está **bajo el capó**, y queda oculto tras métodos concisos:
 
 Así, basta con “importar la librería” y usar su API pública para aprovechar paralelo, distribución y tolerancia a fallos en tus proyectos.
 
--
+---
+
+## 🤝 División de Trabajo
+
+Podríamos arrancar simultáneamente con tareas independientes, de modo que ninguno dependa del otro para avanzar. Por ejemplo:
+
+| Ámbito                            | Estudiante 1 (Java)                                                                                         | Estudiante 2 (Python)                                                                                               |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Infraestructura básica**        | • Esqueleto de `MasterMain.java` y `ProtocolHandler.java`<br>• Configurar Maven/Gradle y badge de CI        | • Esqueleto de `worker_main.py` y `worker_node.py`<br>• Crear `setup.py`/`pyproject.toml` y comando `darray_worker` |
+| **Pruebas de conexión inicial**   | • Test JUnit para recibir `INIT` y responder `ACK`                                                          | • Test pytest para enviar `INIT` y leer `ACK`                                                                       |
+| **Fragmentación y serialización** | • Implementar y testear `Fragment` y `DArrayDouble.split()` en Java                                         | • Implementar y testear función `split()` y serialización JSON en Python                                            |
+| **Manejo de hilos local**         | • Configurar `ExecutorService` con `availableProcessors()`<br>• Test unitario de ejecución paralela en Java | • Configurar `ThreadPoolExecutor(max_workers=os.cpu_count())`<br>• Test unitario de concurrencia en Python          |
+| **API pública (cliente)**         | • Definir `DArrayDouble.mapParallel()` y su stub en Java                                                    | • Definir `DArrayDouble.map_parallel()` y su stub en Python                                                         |
+| **Documentación de uso**          | • Ejemplo de import y llamada Java en README                                                                | • Ejemplo de import y llamada Python en README                                                                      |
+
+Con esta tabla, cada uno puede empezar YA con su pila (Java vs. Python), validar el canal INIT/ACK, y luego ir implementando la fragmentación y la API sin bloquearse mutuamente.
+
+
+---
+## 💡 Contribuir
+
+1. Fork del repositorio.
+2. Crear feature branch: `git checkout -b feature/nueva-funcionalidad`.
+3. Commit y push: `git commit -m "Añade nueva funcionalidad" && git push origin feature/nueva-funcionalidad`.
+4. Pull request describiendo cambios.
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
+
+---
+
+## 👥 Autores
+
+* **Estudiante 1** – Rol: Coordinación y Maestro Java
+* **Estudiante 2** – Rol: Desarrollo de Workers Python
+
+---
 ## 💡 Contribuir
 
 1. Fork del repositorio.
