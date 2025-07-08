@@ -185,7 +185,102 @@ Detalles en `shared/communication_protocol.md`:
    * Detecta caída por falta de `HEARTBEAT`.
    * Activa nodo de réplica y retoma cómputo.
 
+
+
 ---
+
+## 🧪 Enfoque TDD (Test-Driven Development)
+
+En **DArrayLib**, cada módulo se desarrolla siguiendo un ciclo TDD estricto para garantizar fiabilidad, mantenibilidad y alta cobertura de pruebas.
+
+1. **Fragmentación y Serialización** (`shared/`, `master/Java/data/Fragment`)
+
+   * **Objetivo**: Aislar lógica de corte de arreglos y JSON.
+   * **Pruebas**:
+
+     * Generar un `double[]` de 100 valores aleatorios y validar que `Fragment` asigna correctamente `startIndex`, `endIndex` y copia los datos adecuados.
+     * Serializar un `Fragment` a JSON y deserializarlo; comparar objeto original vs. resultante campo a campo.
+   * **Éxito**: 100% de campos intactos tras ciclo ser/deser.
+
+2. **División de Arreglo** (`master/Java/core/DArrayDouble`)
+
+   * **Objetivo**: Fragmentar un arreglo en N partes equilibradas, gestionando residuos y errores.
+   * **Pruebas**:
+
+     * Para `double[]` de longitud 100 con N=4, comprobar que se generan cuatro fragmentos de largo 25.
+     * Casos límite:
+
+       * N > longitud: arrojar `IllegalArgumentException`.
+       * Longitudes no divisibles: distribuir residuo en los primeros fragmentos y validar tamaños.
+   * **Éxito**: Todos los fragmentos suman la longitud original y se lanzan excepciones apropiadas en entradas inválidas.
+
+3. **Protocol Handler** (`master/Java/ProtocolHandler.java`)
+
+   * **Objetivo**: Traducir entre objetos Java y mensajes JSON del protocolo.
+   * **Pruebas**:
+
+     * Convertir cada tipo de mensaje (`INIT`, `TASK`, `RESULT`, `HEARTBEAT`, `REPLICA`, `RECOVER`, `ERROR`) de objeto a cadena JSON y de regreso, validando equivalencia.
+     * Pasar JSON malformado a `fromJson()` y verificar que se lanza `JsonParseException` con mensaje claro.
+   * **Éxito**: Cobertura total de todos los casos de mensaje, incluidos errores de parsing.
+
+4. **Orquestación del Maestro** (`master/Java/MasterServer.java` y `ResultManager.java`)
+
+   * **Objetivo**: Gestionar conexiones, distribuir fragmentos y consolidar resultados.
+   * **Pruebas**:
+
+     * **Unitarias**: Simular sockets mock que envían varios objetos `RESULT`; comprobar que `ResultManager` ensambla el arreglo final en orden correcto.
+     * **Integración**:
+
+       1. Arrancar `MasterServer` en un hilo.
+       2. Levantar dos instancias de worker (Java y Python) con infraestructura mínima.
+       3. Enviar un arreglo fragmentado y verificar que el resultado global coincide con el cálculo secuencial.
+   * **Éxito**: El maestro recupera y une fragmentos aun cuando uno de los workers responda con retraso.
+
+5. **Procesamiento en Workers** (`workers/Python/worker_node.py`, `worker_threading.py`)
+
+   * **Objetivo**: Aplicar operaciones matemáticas o condicionales sobre fragmentos en paralelo.
+   * **Pruebas**:
+
+     * Verificar, para un pequeño fragmento de 10 valores, que las funciones de ejemplo (e.g., `((sin+cos)^2)/(sqrt+1)`, `% 3`, logaritmo) devuelven resultados correctos.
+     * Simular varias tareas encoladas y asegurarse de que el uso de `ThreadPoolExecutor` respeta la concurrencia sin perder ni duplicar datos.
+   * **Éxito**: Resultados consistentes y reproducibles en ejecuciones concurrentes.
+
+6. **Réplica y Recuperación** (`workers/Python/replica_manager.py`)
+
+   * **Objetivo**: Mantener disponibilidad al detectar y reemplazar nodos caídos.
+   * **Pruebas**:
+
+     * Forzar la caída de un worker tras recibir solo parte de un fragmento; verificar que `replica_manager` reenvía la tarea a la réplica y obtiene el resultado correcto.
+     * **Integración**: Desconectar un worker a mitad de cómputo y comprobar que el flujo maestro→réplica→resultado no interrumpe el ensamblado final.
+   * **Éxito**: Tolerancia total a fallos sin pérdida de datos ni corrupción.
+
+---
+
+### 🔧 Herramientas y Ejecución de Pruebas
+
+* **Java**
+
+  * Frameworks: JUnit 5, Mockito para mocks.
+  * Cobertura: JaCoCo configurado para > 90% en módulos `core`, `data`, `ProtocolHandler`.
+  * Comando:
+
+    ```bash
+    # En contenedor Docker o local
+    docker-compose run master mvn test
+    ```
+
+* **Python**
+
+  * Framework: pytest + pytest-mock.
+  * Cobertura: coverage.py con umbral > 90% en `workers/Python`.
+  * Comando:
+
+    ```bash
+    pytest workers/Python --cov=workers/Python
+    ```
+
+---
+
 
 ## 💡 Contribuir
 
