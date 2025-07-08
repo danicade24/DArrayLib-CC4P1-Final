@@ -282,6 +282,191 @@ En **DArrayLib**, cada módulo se desarrolla siguiendo un ciclo TDD estricto par
 ---
 
 
+ **cómo importar y usar** la librería DArrayLib en **Java** y en **Python**, partiendo de la estructura y empaquetado que ya tienes:
+
+---
+
+## 🟢 En Java
+
+### 1. Empaquetado como JAR
+
+Al compilar el proyecto maestro con Maven (o Gradle), se genera un artefacto `darraylib-master.jar` que contiene:
+
+* Las clases públicas:
+
+  * `com.tuempresa.darraylib.DArrayDouble`
+  * `com.tuempresa.darraylib.Fragment`
+  * `com.tuempresa.darraylib.Operation` (interfaz funcional)
+  * Cualquier clase helper que quieras exponer (p. ej. `MasterClient`)
+
+### 2. Declarar la dependencia
+
+Si usas **Maven**, en tu `pom.xml` del proyecto consumidor agrega:
+
+```xml
+<dependency>
+  <groupId>com.tuempresa.darraylib</groupId>
+  <artifactId>darraylib-master</artifactId>
+  <version>1.0.0</version>
+  <scope>compile</scope>
+</dependency>
+```
+
+Si usas **Gradle**, en tu `build.gradle`:
+
+```groovy
+dependencies {
+    implementation "com.tuempresa.darraylib:darraylib-master:1.0.0"
+}
+```
+
+### 3. Importar y usar en código
+
+Ahora en cualquier clase Java sólo necesitas:
+
+```java
+import com.tuempresa.darraylib.DArrayDouble;
+import com.tuempresa.darraylib.Operation;
+
+public class App {
+    public static void main(String[] args) {
+        // 1. Preparamos un arreglo de ejemplo
+        double[] datos = { 0.0, 1.0, 2.0, 3.0, /* … */ };
+
+        // 2. Creamos la instancia indicando N fragmentos
+        DArrayDouble darr = new DArrayDouble(datos, 4);
+
+        // 3. Definimos la operación a aplicar
+        Operation<Double, Double> op = x ->
+            Math.pow(Math.sin(x) + Math.cos(x), 2) / (Math.sqrt(Math.abs(x)) + 1);
+
+        // 4. Procesamos en paralelo y distribuido
+        double[] resultado = darr.mapParallel(op);
+
+        // ¡Listo!
+        System.out.println("Resultado[0] = " + resultado[0]);
+    }
+}
+```
+
+Bajo esa llamada, DArrayLib:
+
+1. Inicia internamente el “Maestro” (si no está ya corriendo).
+2. Fragmenta `datos` en 4 partes.
+3. Distribuye tareas a los workers (Java o Python).
+4. Ensambla el arreglo final y te lo devuelve.
+
+---
+
+## 🟢 En Python
+
+### 1. Empaquetado como paquete pip
+
+En el repositorio Python tienes dos paquetes:
+
+* `darraylib_master` (cliente / maestro)
+* `darraylib_worker` (código de worker)
+
+Asegúrate de tener en la raíz un `setup.py` (o `pyproject.toml`) que declare ambos:
+
+```python
+# setup.py (resumen)
+from setuptools import setup, find_packages
+
+setup(
+    name="darraylib",
+    version="1.0.0",
+    packages=find_packages(include=["darraylib_master*", "darraylib_worker*"]),
+    install_requires=[
+        # aquí tus dependencias, p.ej. "numpy"
+    ],
+    entry_points={
+        "console_scripts": [
+            "darray_worker = darraylib_worker.worker_main:main"
+        ]
+    }
+)
+```
+
+### 2. Instalación vía pip
+
+Desde la carpeta raíz del proyecto:
+
+```bash
+pip install .
+```
+
+Esto hará disponible:
+
+* El módulo `darraylib_master`
+* El módulo `darraylib_worker`
+* El comando terminal `darray_worker` para arrancar un worker
+
+### 3. Importar y usar en código
+
+#### a) Arrancar uno o varios workers
+
+Opcionalmente, en un terminal:
+
+```bash
+darray_worker --master-host 127.0.0.1 --master-port 9000
+```
+
+O bien directamente desde Python:
+
+```python
+from darraylib_worker.worker_main import start_worker
+
+start_worker(master_host="127.0.0.1", master_port=9000)
+```
+
+#### b) Desde el cliente Python
+
+```python
+from darraylib_master import DArrayDouble
+
+# 1. Generamos datos de ejemplo
+datos = [i * 0.5 for i in range(1000)]
+
+# 2. Creamos el objeto DArrayDouble
+darr = DArrayDouble(datos, num_fragments=4)
+
+# 3. Definimos la función a aplicar
+def mi_operacion(x):
+    return ( (math.sin(x) + math.cos(x))**2 ) / (math.sqrt(abs(x)) + 1)
+
+# 4. Ejecutamos
+resultado = darr.map_parallel(mi_operacion)
+
+# 5. Usamos el resultado
+print("Primer valor:", resultado[0])
+```
+
+Internamente, `map_parallel` se encarga de:
+
+1. Fragmentar la lista `datos`.
+2. Enviar cada fragmento al maestro (que corre en Java o en Python).
+3. Esperar y ensamblar el resultado completo.
+
+---
+
+## 🔑 Clave: API de Alto Nivel
+
+En **ningún momento** el desarrollador que consume la librería necesita:
+
+* Crear `ServerSocket` o `socket.socket`.
+* Gestionar hilos (`Thread`, `ThreadPoolExecutor`).
+* Serializar o deserializar JSON.
+* Manejar reconexiones o heartbeats.
+
+Todo eso está **bajo el capó**, y queda oculto tras métodos concisos:
+
+* **Java**: `new DArrayDouble(...).mapParallel(...)`
+* **Python**: `DArrayDouble(...).map_parallel(...)`
+
+Así, basta con “importar la librería” y usar su API pública para aprovechar paralelo, distribución y tolerancia a fallos en tus proyectos.
+
+-
 ## 💡 Contribuir
 
 1. Fork del repositorio.
