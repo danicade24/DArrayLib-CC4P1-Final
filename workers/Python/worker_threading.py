@@ -6,12 +6,19 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(m
 TASK_SCHEMA = {
     "type": "object",
     "properties": {
-        "type": {"type": "string", "enum":["task, heartbeat"]},
-        "data": {"type": "array", "items": {"type": "number"}},
+        "type": {
+            "type": "string",
+            "enum": ["task", "heartbeat"]   # <-- DOS strings separados, NO uno solo con coma
+        },
+        "data": {
+            "type": "array",
+            "items": {"type": "number"}
+        },
         "operation": {"type": "string"}
     },
     "required": ["type", "data", "operation"]
 }
+
 
 def process_data(data):
     return [((math.sin(x) + math.cos(x)) ** 2) / (math.sqrt(abs(x)) + 1) for x in data]
@@ -34,6 +41,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             result = process_data(msg["data"])
             self.request.sendall(json.dumps({"type": "result", "result": result}).encode())
             
-class ThreaddedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     daemon_threads = True
     allow_reuse_address = True
