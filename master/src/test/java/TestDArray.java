@@ -1,4 +1,3 @@
-package tests;
 import core.DArrayDouble;
 
 public class TestDArray {
