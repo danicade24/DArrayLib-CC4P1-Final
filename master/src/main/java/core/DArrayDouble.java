@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Implementación 100% Modelo A: fragmentación fija con re-fragmentación obligatoria al modificar los datos.
+ * fragmentación fija con re-fragmentación obligatoria al modificar los datos.
  * Garantiza consistencia y protección de los fragmentos.
  */
 public class DArrayDouble {
