@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 [2025-07-10 02:34:21,495] INFO: Worker principal escuchando en 0.0.0.0:12347
 [2025-07-10 02:34:21,496] INFO: ReplicaManager arrancado
 [2025-07-10 02:34:21,499] INFO: [Threaded] Connection from 127.0.0.1:36562: b'{"type": "heartbeat", "data": [], "operation": ""}'
@@ -99,3 +100,25 @@
 [2025-07-10 02:42:22,022] INFO: [Threaded] Connection from 127.0.0.1:33128: b'{"type": "heartbeat", "data": [], "operation": ""}'
 [2025-07-10 02:42:27,028] INFO: [Threaded] Connection from 127.0.0.1:33134: b'{"type": "heartbeat", "data": [], "operation": ""}'
 [2025-07-10 02:42:32,035] INFO: [Threaded] Connection from 127.0.0.1:56496: b'{"type": "heartbeat", "data": [], "operation": ""}'
+=======
+Traceback (most recent call last):
+  File "/home/daniela/OneDrive_daniela/UNI CC/7mo Ciclo/25-1/PCD/DArrayLib/workers/Python/worker_main.py", line 59, in <module>
+    main(
+    ~~~~^
+        host=args.host,
+        ^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        heartbeat_timeout=args.heartbeat_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/daniela/OneDrive_daniela/UNI CC/7mo Ciclo/25-1/PCD/DArrayLib/workers/Python/worker_main.py", line 19, in main
+    server = ThreadedTCPServer((host, port), ThreadedTCPRequestHandler)
+  File "/usr/lib64/python3.13/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/usr/lib64/python3.13/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 98] Address already in use
+>>>>>>> Stashed changes

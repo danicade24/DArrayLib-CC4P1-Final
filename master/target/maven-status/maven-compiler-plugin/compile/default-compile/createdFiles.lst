@@ -1,0 +1,8 @@
+core/DArrayDouble.class
+handler/Operation.class
+handler/WorkerConnection.class
+data/Fragment.class
+handler/ResultManager.class
+handler/MasterServer.class
+darraylib/DArrayLib.class
+protocol/ProtocolHandler.class
