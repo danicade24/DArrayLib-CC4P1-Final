@@ -153,7 +153,7 @@ public class MasterServer {
 
         // --- Genera datos de prueba ---
         // Por ejemplo, un array de tamaño 100:
-        double[] data = new double[10];
+        double[] data = new double[1000];
         for (int i = 0; i < data.length; i++) data[i] = i + 1;
 
         // Fragmenta en nWorkers pedazos
@@ -163,9 +163,7 @@ public class MasterServer {
         List<WorkerConnection> workers = new ArrayList<>();
         for (int i = 0; i < nWorkers; i++) {
             int port = basePort + i * 2;             // basePort, basePort+2, basePort+4, …
-            workers.add(new WorkerConnection("worker" + (i+1),
-                                            "localhost",
-                                            port));
+            workers.add(new WorkerConnection("worker" + (i+1),"localhost", port));
         }
 
         // Arranca el Master
