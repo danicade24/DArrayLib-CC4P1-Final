@@ -1,5 +1,6 @@
+package handler;
+
 import core.DArrayDouble;
-import handler.MasterServer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
