@@ -1,7 +1,8 @@
 package handler;
+
 import core.DArrayDouble;
 import data.Fragment;
-import protocol.ProtocolHandler;
+import protocol.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -9,6 +10,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,6 +22,9 @@ public class MasterServer {
     private final int port;
     private final ResultManager resultManager;
     private final DArrayDouble dArray;
+    private final List<WorkerConnection> workers;
+    private String operation = Operation.IDENTITY; // Operación por defecto
+    private double[] finalResult; // Resultado final ensamblado
 
     /**
      * Crea un MasterServer en el puerto especificado.
@@ -31,22 +37,44 @@ public class MasterServer {
         this.port = port;
         this.dArray = dArray;
         this.resultManager = new ResultManager(expectedFragments);
+        this.workers = new ArrayList<>();
     }
 
     /**
-     * Inicia el servidor maestro en un nuevo hilo y espera conexiones de los workers.
+     * Define la operación matemática que los workers deben aplicar.
+     *
+     * @param operation Expresión matemática en formato String.
+     */
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    /**
+     * Registra una lista de workers disponibles para distribuir las tareas.
+     *
+     * @param workerConnections Lista de conexiones a workers.
+     */
+    public void registerWorkers(List<WorkerConnection> workerConnections) {
+        workers.addAll(workerConnections);
+    }
+
+    /**
+     * Inicia el servidor maestro en un nuevo hilo, distribuye las tareas y espera resultados.
      */
     public void start() {
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
                 System.out.println("✅ MasterServer escuchando en puerto " + port);
 
+                distributeFragments();
+
                 while (!resultManager.isComplete()) {
                     Socket clientSocket = serverSocket.accept();
                     new Thread(() -> handleWorker(clientSocket)).start();
                 }
 
-                double[] finalResult = resultManager.assembleResults();
+                this.finalResult = resultManager.assembleResults();
+
                 System.out.println("✅ Resultado final: ");
                 for (double v : finalResult) {
                     System.out.print(v + " ");
@@ -57,6 +85,31 @@ public class MasterServer {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    /**
+     * Devuelve el resultado final ensamblado o null si aún no está listo.
+     *
+     * @return Array de resultados o null.
+     */
+    public double[] getFinalResult() {
+        return finalResult;
+    }
+
+    /**
+     * Envía los fragmentos a los workers registrados junto con la operación especificada.
+     */
+    private void distributeFragments() {
+        List<Fragment> fragments = dArray.getFragments();
+
+        for (int i = 0; i < fragments.size(); i++) {
+            if (i < workers.size()) {
+                WorkerConnection worker = workers.get(i);
+                worker.sendTask(fragments.get(i), "T1", operation);
+            } else {
+                System.err.println("⚠ No hay suficientes workers registrados para enviar el fragmento " + i);
+            }
+        }
     }
 
     /**
@@ -84,7 +137,7 @@ public class MasterServer {
                 String resultArray = message.get("result");
 
                 double[] parsedResult = parseArray(resultArray);
-                int startIndex = findStartIndex(workerId); // Implementación placeholder
+                int startIndex = findStartIndex(workerId);
 
                 Fragment fragment = new Fragment(workerId, startIndex, parsedResult);
                 resultManager.addResult(taskId, fragment);
@@ -128,12 +181,39 @@ public class MasterServer {
 
     /**
      * Método principal para iniciar el servidor manualmente.
+     *
+     * @param args Argumentos de línea de comandos (no utilizados).
      */
     public static void main(String[] args) {
         double[] data = {1.0, 2.0, 3.0, 4.0};
         DArrayDouble dArray = new DArrayDouble(data, 2);
 
         MasterServer server = new MasterServer(5000, dArray, 2);
+
+        server.setOperation(Operation.SIN_PLUS_COS_SQUARE_DIV_SQRT);
+
+        List<WorkerConnection> workers = new ArrayList<>();
+        workers.add(new WorkerConnection("worker1", "localhost", 6001));
+        workers.add(new WorkerConnection("worker2", "localhost", 6002));
+
+        server.registerWorkers(workers);
         server.start();
+
+        try {
+            Thread.sleep(3000); // Esperar a que lleguen los resultados
+            double[] result = server.getFinalResult();
+
+            if (result != null) {
+                System.out.println("🔍 Resultado recuperado desde main:");
+                for (double v : result) {
+                    System.out.print(v + " ");
+                }
+                System.out.println();
+            } else {
+                System.out.println("El resultado aún no está listo.");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
-}
+} 
