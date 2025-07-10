@@ -142,21 +142,41 @@ public class MasterServer {
     /**
      * Ejemplo de uso en main().
      */
-    public static void main(String[] args) {
-        double[] data = {1.0, 2.0, 3.0, 4.0};
-        DArrayDouble dArray = new DArrayDouble(data, 2);
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.err.println("Uso: java handler.MasterServer <basePort> <nWorkers>");
+            System.exit(1);
+        }
 
-        List<WorkerConnection> workers = List.of(
-            new WorkerConnection("worker1", "localhost", 6001),
-            new WorkerConnection("worker2", "localhost", 6003)
-        );
+        int basePort = Integer.parseInt(args[0]);  // p.ej. 6001
+        int nWorkers = Integer.parseInt(args[1]);  // p.ej. 3, 5, 10, lo que quieras
 
+        // --- Genera datos de prueba ---
+        // Por ejemplo, un array de tamaño 100:
+        double[] data = new double[10];
+        for (int i = 0; i < data.length; i++) data[i] = i + 1;
+
+        // Fragmenta en nWorkers pedazos
+        DArrayDouble dArray = new DArrayDouble(data, nWorkers);
+
+        // Construye dinámicamente la lista de conexiones
+        List<WorkerConnection> workers = new ArrayList<>();
+        for (int i = 0; i < nWorkers; i++) {
+            int port = basePort + i * 2;             // basePort, basePort+2, basePort+4, …
+            workers.add(new WorkerConnection("worker" + (i+1),
+                                            "localhost",
+                                            port));
+        }
+
+        // Arranca el Master
         MasterServer master = new MasterServer(dArray, workers);
         master.setOperation(Operation.SIN_PLUS_COS_SQUARE_DIV_SQRT);
         master.start();
 
-        // Ejemplo de getFinalResult
-        double[] result = master.getFinalResult();
-        System.out.println("🔍 Resultado desde main(): " + Arrays.toString(result));
+        // Opcional: espera un instante y muestra el resultado final
+        Thread.sleep(1000);
+        System.out.println("🔍 Resultado final: " +
+            Arrays.toString(master.getFinalResult()));
     }
+
 }
