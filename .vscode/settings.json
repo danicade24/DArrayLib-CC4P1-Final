@@ -4,5 +4,6 @@
         "master/src/main/java",
         "master/src/test/java"
     ],
-    "java.project.referencedLibraries": []
+    "java.project.referencedLibraries": [],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

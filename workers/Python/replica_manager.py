@@ -1,84 +1,45 @@
 import threading
-import time
+import logging
 import socket
 import json
-import logging
 import subprocess
-import signal
+import time
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+logger = logging.getLogger()
 
-class ReplicaManager:
-    def __init__(self, primary_host, primary_port, backup_cmd,
-                 heartbeat_interval=5.0, heartbeat_timeout=1.0):
-        """
-        primary_host, primary_port: dirección del worker primario.
-        backup_cmd: lista de comando para levantar la réplica.
-        heartbeat_interval: cada cuántos segundos enviar latido.
-        heartbeat_timeout: cuánto esperar respuesta en segundos.
-        """
-        self.primary = (primary_host, primary_port)
-        self.backup_cmd = backup_cmd
+class ReplicaManager(threading.Thread):
+    """
+    Hilo que arranca un worker de réplica y envía heartbeats al primario.
+    """
+    def __init__(self, primary_host, primary_port,
+                 backup_cmd, heartbeat_interval, heartbeat_timeout):
+        super().__init__(daemon=True)
+        self.primary_host     = primary_host
+        self.primary_port     = primary_port
+        self.backup_cmd       = backup_cmd
         self.heartbeat_interval = heartbeat_interval
-        self.heartbeat_timeout = heartbeat_timeout
+        self.heartbeat_timeout  = heartbeat_timeout
+        self._running = True
 
-        self.backup_proc = None
-        self._stop = threading.Event()
+    def run(self):
+        # Arranca el proceso de réplica
+        logger.info(f"ReplicaManager arranca réplica: {' '.join(self.backup_cmd)}")
+        self.backup_proc = subprocess.Popen(self.backup_cmd)
 
-    def start(self):
-        """Arranca el hilo de monitoring."""
-        self._thread = threading.Thread(target=self._monitor, daemon=True)
-        self._thread.start()
-
-    def stop(self):
-        """Señala que pare el monitoring y cierra la réplica si existe."""
-        self._stop.set()
-        if self.backup_proc:
-            logging.info("Deteniendo réplica secundaria")
-            self.backup_proc.send_signal(signal.SIGTERM)
+        # Ciclo de heartbeats
+        while self._running:
             try:
-                self.backup_proc.wait(timeout=2.0)
-            except subprocess.TimeoutExpired:
-                logging.warning("Replica no respondió a SIGTERM, forzando kill")
-                self.backup_proc.kill()
-        self._thread.join()
-
-    def _monitor(self):
-        """Bucle de heartbeat y gestión de réplica."""
-        while not self._stop.is_set():
-            alive = self._send_heartbeat()
-            if not alive:
-                if self.backup_proc is None:
-                    logging.warning("Primario caído, arrancando réplica...")
-                    self.backup_proc = subprocess.Popen(self.backup_cmd)
-                else:
-                    logging.debug("Réplica ya en ejecución")
-            else:
-                # Primario vivo
-                if self.backup_proc:
-                    logging.info("Primario recuperado, deteniendo réplica...")
-                    self.backup_proc.send_signal(signal.SIGTERM)
-                    try:
-                        self.backup_proc.wait(timeout=2.0)
-                    except subprocess.TimeoutExpired:
-                        logging.warning("Forzando kill de la réplica")
-                        self.backup_proc.kill()
-                    self.backup_proc = None
+                with socket.create_connection((self.primary_host, self.primary_port),
+                                              timeout=self.heartbeat_timeout) as s:
+                    msg = {"type": "heartbeat", "data": [], "operation": ""}
+                    s.sendall((json.dumps(msg) + "\n").encode())
+                    logger.debug("Heartbeat enviado al primario")
+                    # opcional: leer ACK si quieres validar
+            except Exception as e:
+                logger.error(f"Heartbeat falló: {e}")
             time.sleep(self.heartbeat_interval)
 
-    def _send_heartbeat(self):
-        """Envía un latido y espera ack. Devuelve True si recibió ack."""
-        try:
-            with socket.create_connection(self.primary, timeout=self.heartbeat_timeout) as sock:
-                lb = {"type": "heartbeat", "data": [], "operation": ""}
-                sock.sendall(json.dumps(lb).encode())
-                resp = sock.recv(1024)
-                msg = json.loads(resp.decode())
-                return msg.get("type") == "heartbeat_ack"
-        except Exception as e:
-            logging.debug(f"Heartbeat fallido: {e}")
-            return False
+    def stop(self):
+        self._running = False
+        if hasattr(self, "backup_proc"):
+            self.backup_proc.terminate()

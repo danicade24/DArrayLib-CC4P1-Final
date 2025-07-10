@@ -9,11 +9,13 @@
 #     N          Número de workers a levantar (por defecto 3)
 #     base_port  Puerto inicial (por defecto 12345)
 #
+
+export PYTHONUNBUFFERED=1
 set -euo pipefail
 
 # 1) Determinar rutas
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$SCRIPT_DIR/.."                  # un nivel arriba
+REPO_ROOT="$SCRIPT_DIR/.."
 WORKER_DIR="$REPO_ROOT/workers/Python"
 LOG_DIR="$REPO_ROOT/logs"
 
@@ -28,13 +30,12 @@ HOST="${HOST:-0.0.0.0}"
 HB_INTERVAL="${HEARTBEAT_INTERVAL:-5.0}"
 HB_TIMEOUT="${HEARTBEAT_TIMEOUT:-1.0}"
 
-# 4) Array para PIDs
 declare -a PIDS=()
 
 echo "== Arrancando $N workers en $HOST a partir de puerto $BASE_PORT =="
 echo "== Logs en $LOG_DIR/worker_<port>.log =="
 
-# 5) Bucle de arranque
+# 4) Bucle de arranque
 for i in $(seq 0 $((N-1))); do
   port=$(( BASE_PORT + i*2 ))
   replica_port=$(( port + 1 ))
@@ -48,13 +49,13 @@ for i in $(seq 0 $((N-1))); do
     --heartbeat-timeout "$HB_TIMEOUT" \
     > "$LOG_DIR/worker_${port}.log" 2>&1 &
 
-  PIDS+=($!)
+  PIDS+=("$!")
 done
 
 echo "== Workers arrancados. PIDs: ${PIDS[*]} =="
 printf "%s\n" "${PIDS[@]}" > "$REPO_ROOT/worker_pids.txt"
 
-# 6) Función de limpieza
+# 5) Función de limpieza
 cleanup(){
   echo; echo "== Deteniendo todos los workers =="
   for pid in "${PIDS[@]}"; do
@@ -65,5 +66,5 @@ cleanup(){
 }
 trap cleanup SIGINT SIGTERM
 
-# 7) Esperar hasta Ctrl+C
+# 6) Esperar hasta Ctrl+C
 wait
