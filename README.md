@@ -484,6 +484,77 @@ Con esta tabla, cada uno puede empezar YA con su pila (Java vs. Python), validar
 
 
 ---
+
+## Despliegue de Workers Python
+
+En la carpeta `scripts/` dispones del script `start_workers.sh` que levanta **N** instancias de tu worker Python (con réplica) en puertos consecutivos.
+
+> **Invocable desde cualquier ubicación**  
+> El script detecta su propia ruta y se posiciona en `workers/Python` automáticamente, así que no hace falta hacer `cd` manualmente.
+
+> **Logs centralizados**  
+> Cada worker vuelca su salida en `logs/worker_<port>.log` en la raíz del proyecto.
+
+> **Parada limpia**  
+> Pulsa `Ctrl+C` para detener todos los workers y eliminar `worker_pids.txt`.
+
+> **Variables de entorno opcionales**  
+> - `HOST` (por defecto `0.0.0.0`)  
+> - `HEARTBEAT_INTERVAL` (por defecto `5.0`)  
+> - `HEARTBEAT_TIMEOUT` (por defecto `1.0`)
+
+---
+
+## Uso
+
+Desde la **raíz** del repositorio (o desde cualquier otra carpeta), ejecuta:
+
+```bash
+./scripts/start_workers.sh <N> [base_port]
+```
+
+- `<N>`: número de workers a levantar (por defecto 3).  
+- `[base_port]`: puerto inicial (por defecto 12345).
+
+### Ejemplos
+
+```bash
+# Levanta 10 workers en 12345/12346, 12347/12348, ...
+./scripts/start_workers.sh 10
+
+# Levanta 5 workers comenzando en 20000/20001, ...
+./scripts/start_workers.sh 5 20000
+```
+
+---
+
+## Ver los Logs
+
+Para inspeccionar los logs de un worker concreto:
+
+```bash
+tail -f logs/worker_<port>.log
+```
+
+Ejemplo:
+
+```bash
+tail -f logs/worker_12345.log
+```
+
+---
+
+## Ejecución Manual sin Script
+
+Si prefieres no usar el script, puedes arrancar un worker individual:
+
+```bash
+cd workers/Python
+python3 worker_main.py   --host 0.0.0.0   --port 12345   --replica-port 12346   --heartbeat-interval 5.0   --heartbeat-timeout 1.0
+```
+
+
+---
 ## 💡 Contribuir
 
 1. Fork del repositorio.
