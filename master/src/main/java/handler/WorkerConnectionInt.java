@@ -1,15 +1,16 @@
 package handler;
 
-import data.Fragment;
+import data.FragmentInt;
 import protocol.ProtocolHandler;
 
 import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * Representa una conexión hacia un worker remoto. Se encarga de enviar tareas (fragmentos).
+ * WorkerConnectionInt: Representa una conexión hacia un worker remoto para datos int.
+ * Se encarga de enviar tareas (fragmentos) de enteros.
  */
-public class WorkerConnection {
+public class WorkerConnectionInt {
 
     private final String workerId;
     private final String host;
@@ -19,27 +20,31 @@ public class WorkerConnection {
      * Crea una nueva conexión a un worker.
      *
      * @param workerId Identificador lógico del worker.
-     * @param host     Dirección IP o nombre del host del worker.
-     * @param port     Puerto TCP del worker.
+     * @param host Dirección IP o nombre del host.
+     * @param port Puerto TCP del worker.
      */
-    public WorkerConnection(String workerId, String host, int port) {
+    public WorkerConnectionInt(String workerId, String host, int port) {
         this.workerId = workerId;
         this.host = host;
         this.port = port;
     }
 
-    public String getWorkerId(){
+    /**
+     * Devuelve el identificador del worker.
+     * @return ID del worker.
+     */
+    public String getWorkerId() {
         return workerId;
     }
 
     /**
-     * Envía un fragmento al worker con una tarea específica y una operación matemática.
+     * Envía un fragmento de enteros al worker junto con la tarea y operación.
      *
-     * @param fragment Fragmento de datos a procesar.
-     * @param taskId   Identificador único de la tarea.
-     * @param operation Expresión matemática en formato String.
+     * @param fragment Fragmento de datos int a procesar.
+     * @param taskId ID único de la tarea.
+     * @param operation Operación matemática a realizar.
      */
-    public void sendTask(Fragment fragment, String taskId, String operation) {
+    public void sendTask(FragmentInt fragment, String taskId, String operation) {
         try (Socket socket = new Socket(host, port);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
