@@ -2,259 +2,161 @@ package handler;
 
 import core.DArrayDouble;
 import data.Fragment;
-import protocol.*;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
- * MasterServer: Gestiona la comunicación con los workers, distribuye fragmentos y recolecta resultados.
- * Incluye tolerancia a fallos mediante detección de latidos (heartbeat) y recuperación automática.
+ * MasterServer: distribuye fragmentos a múltiples workers en paralelo
+ * y recoge los resultados en un solo round-trip por worker.
  */
-public class MasterServer implements RecoveryCapable{
+public class MasterServer {
 
-    private final int port;
-    private final ResultManager resultManager;
     private final DArrayDouble dArray;
     private final List<WorkerConnection> workers;
-    private final List<WorkerConnection> backupWorkers;
-    private final Map<String, Fragment> workerToFragment;
+    private final ResultManager resultManager;
     private String operation = Operation.IDENTITY;
-    private double[] finalResult;
-    private final WorkerHealthManager healthManager;
 
     /**
-     * Construye un MasterServer con configuración inicial.
-     * @param port Puerto de escucha para conexiones de workers.
-     * @param dArray Datos a procesar.
-     * @param expectedFragments Número total de fragmentos esperados.
+     * Constructor principal.
+     *
+     * @param dArray  El array distribuido a fragmentar.
+     * @param workers Lista de conexiones a workers disponibles.
      */
-    public MasterServer(int port, DArrayDouble dArray, int expectedFragments) {
-        this.port = port;
-        this.dArray = dArray;
-        this.resultManager = new ResultManager(expectedFragments);
-        this.workers = new ArrayList<>();
-        this.backupWorkers = new ArrayList<>();
-        this.workerToFragment = new ConcurrentHashMap<>();
-        this.healthManager = new WorkerHealthManager(this, 5000);
+    public MasterServer(DArrayDouble dArray, List<WorkerConnection> workers) {
+        this.dArray        = dArray;
+        this.workers       = new ArrayList<>(workers);
+        this.resultManager = new ResultManager(dArray.getFragments().size());
     }
 
     /**
-     * Define la operación matemática a aplicar en los workers.
-     * @param operation Expresión matemática como String.
+     * Constructor de compatibilidad con la versión anterior.
+     *
+     * @param port              (despreciado) ya no se usa internamente.
+     * @param dArray            El array distribuido a fragmentar.
+     * @param expectedFragments (despreciado) ya no se usa, se infiere de dArray.
+     */
+    @Deprecated
+    public MasterServer(int port, DArrayDouble dArray, int expectedFragments) {
+        this(dArray, new ArrayList<>());
+    }
+
+    /**
+     * Define la operación matemática que aplicarán los workers.
      */
     public void setOperation(String operation) {
         this.operation = operation;
     }
 
     /**
-     * Registra los workers activos disponibles para recibir tareas.
-     * @param workerConnections Lista de conexiones a workers.
+     * Registra los workers que se emplearán para procesar (para el constructor de compatibilidad).
      */
-    public void registerWorkers(List<WorkerConnection> workerConnections) {
-        workers.addAll(workerConnections);
+    public void registerWorkers(List<WorkerConnection> workers) {
+        this.workers.addAll(workers);
     }
 
     /**
-     * Registra los workers de respaldo para recuperación en caso de fallo.
-     * @param backups Lista de workers de respaldo.
-     */
-    public void registerBackupWorkers(List<WorkerConnection> backups) {
-        backupWorkers.addAll(backups);
-    }
-
-    /**
-     * Inicia el servidor maestro, distribuye las tareas y escucha resultados.
+     * Arranca la distribución de fragmentos en paralelo y espera todas las respuestas.
      */
     public void start() {
-        new Thread(() -> {
-            try (ServerSocket serverSocket = new ServerSocket(port)) {
-                System.out.println("✅ MasterServer escuchando en puerto " + port);
+        System.out.println("✅ MasterServer arrancando tareas…");
 
-                distributeFragments();
+        List<Fragment> fragments = dArray.getFragments();
+        int nTasks = Math.min(fragments.size(), workers.size());
 
-                while (!resultManager.isComplete()) {
-                    Socket clientSocket = serverSocket.accept();
-                    new Thread(() -> handleWorker(clientSocket)).start();
+        ExecutorService exec = Executors.newFixedThreadPool(nTasks);
+        List<Future<Map<String,String>>> futures = new ArrayList<>();
+
+        // 1) Enviar cada fragmento en paralelo
+        for (int i = 0; i < nTasks; i++) {
+            final int idx = i;
+            Fragment frag       = fragments.get(idx);
+            WorkerConnection wc = workers.get(idx);
+            String taskId       = "T" + idx;
+
+            futures.add(exec.submit(() ->
+                wc.sendTaskAndGetResult(frag, taskId, operation)
+            ));
+        }
+
+        // 2) Recolectar cada respuesta
+        for (int i = 0; i < futures.size(); i++) {
+            try {
+                Map<String,String> resp = futures.get(i).get();
+                String type = resp.get("type");
+                if (!"result".equals(type)) {
+                    System.err.println("⚠ Worker " + i + " devolvió error: " + resp.get("message"));
+                    continue;
                 }
 
-                this.finalResult = resultManager.assembleResults();
+                String taskId   = resp.get("task_id");
+                String resultJs = resp.get("result");
+                double[] result = parseArray(resultJs);
 
-                System.out.println("✅ Resultado final: ");
-                for (double v : finalResult) {
-                    System.out.print(v + " ");
-                }
-                System.out.println();
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                Fragment frag = fragments.get(i);
+                resultManager.addResult(
+                    taskId,
+                    new Fragment(workers.get(i).getWorkerId(),
+                                 frag.getStartIndex(),
+                                 result)
+                );
+            } catch (InterruptedException|ExecutionException e) {
+                System.err.println("❌ Error procesando fragmento " + i + ": " + e.getMessage());
             }
-        }).start();
+        }
+
+        exec.shutdown();
+
+        // 3) Ensamblar y mostrar resultado final
+        double[] finalRes = resultManager.assembleResults();
+        System.out.println("✅ Resultado final: " + Arrays.toString(finalRes));
     }
 
     /**
-     * Devuelve el resultado final ensamblado después de recibir todos los fragmentos.
-     * @return Arreglo de doubles con el resultado global o null si no está listo.
+     * Devuelve el resultado final ensamblado o null si aún no está listo.
      */
     public double[] getFinalResult() {
-        return finalResult;
+        return resultManager.isComplete()
+             ? resultManager.assembleResults()
+             : null;
     }
 
     /**
-     * Distribuye los fragmentos a los workers activos y registra la asignación.
-     */
-    private void distributeFragments() {
-        List<Fragment> fragments = dArray.getFragments();
-
-        for (int i = 0; i < fragments.size(); i++) {
-            if (i < workers.size()) {
-                WorkerConnection worker = workers.get(i);
-                Fragment fragment = fragments.get(i);
-                worker.sendTask(fragment, "T1", operation);
-                workerToFragment.put(worker.getWorkerId(), fragment);
-            } else {
-                System.err.println("⚠ No hay suficientes workers registrados para enviar el fragmento " + i);
-            }
-        }
-    }
-
-    /**
-     * Maneja la comunicación con un worker individual, procesando INIT, RESULT y HEARTBEAT.
-     * @param clientSocket Socket de conexión con el worker.
-     */
-    private void handleWorker(Socket clientSocket) {
-        try (
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            OutputStream out = clientSocket.getOutputStream();
-            PrintWriter writer = new PrintWriter(out, true);
-        ) {
-            String line = in.readLine();
-            Map<String, String> message = ProtocolHandler.fromJson(line);
-
-            String type = message.get("type");
-
-            if ("INIT".equals(type)) {
-                writer.println(ProtocolHandler.toJson(ProtocolHandler.createDoneMessage()));
-
-            } else if ("RESULT".equals(type)) {
-                String taskId = message.get("task_id");
-                String workerId = message.get("worker_id");
-                String resultArray = message.get("result");
-
-                double[] parsedResult = parseArray(resultArray);
-                int startIndex = findStartIndex(workerId);
-
-                Fragment fragment = new Fragment(workerId, startIndex, parsedResult);
-                resultManager.addResult(taskId, fragment);
-
-            } else if ("HEARTBEAT".equals(type)) {
-                String workerId = message.get("worker_id");
-                healthManager.updateHeartbeat(workerId);
-            }
-
-            clientSocket.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Convierte una cadena de números en formato JSON a un arreglo de doubles.
-     * @param arrayStr Cadena JSON con números.
-     * @return Arreglo de doubles.
+     * Parsea la representación JSON de array ("[1.0,2.0]") a double[].
      */
     private double[] parseArray(String arrayStr) {
-        arrayStr = arrayStr.replace("[", "").replace("]", "");
-        String[] parts = arrayStr.split(",");
-        double[] result = new double[parts.length];
+        String s = (arrayStr == null ? "" : arrayStr.trim());
+        if (s.startsWith("[")) s = s.substring(1);
+        if (s.endsWith("]"))   s = s.substring(0, s.length()-1);
 
+        if (s.isEmpty()) return new double[0];
+
+        String[] parts = s.split(",");
+        double[] res = new double[parts.length];
         for (int i = 0; i < parts.length; i++) {
-            result[i] = Double.parseDouble(parts[i].trim());
+            res[i] = Double.parseDouble(parts[i].trim());
         }
-
-        return result;
+        return res;
     }
 
     /**
-     * Obtiene el índice de inicio de un worker (actualmente sin implementación real).
-     * @param workerId ID del worker.
-     * @return Índice de inicio, siempre 0 por ahora.
-     */
-    private int findStartIndex(String workerId) {
-        return 0;
-    }
-
-    /**
-     * Lanza la recuperación de un fragmento asignado a un worker caído, utilizando un worker de respaldo.
-     * @param failedWorkerId ID del worker fallido.
-     */
-    public void triggerRecoveryForWorker(String failedWorkerId) {
-        Fragment fragment = workerToFragment.get(failedWorkerId);
-
-        if (fragment == null) {
-            System.err.println("⚠ No se encontró fragmento para " + failedWorkerId);
-            return;
-        }
-
-        if (backupWorkers.isEmpty()) {
-            System.err.println("🚨 No hay workers de reserva disponibles.");
-            return;
-        }
-
-        WorkerConnection backup = backupWorkers.remove(0);
-        System.out.println("🔄 Reenviando fragmento a " + backup.getWorkerId());
-
-        backup.sendTask(fragment, "T1", operation);
-        workerToFragment.put(backup.getWorkerId(), fragment);
-    }
-
-    /**
-     * Método principal para iniciar el servidor y realizar pruebas manuales.
-     * @param args Argumentos de línea de comandos.
+     * Ejemplo de uso en main().
      */
     public static void main(String[] args) {
         double[] data = {1.0, 2.0, 3.0, 4.0};
         DArrayDouble dArray = new DArrayDouble(data, 2);
 
-        MasterServer server = new MasterServer(5000, dArray, 2);
+        List<WorkerConnection> workers = List.of(
+            new WorkerConnection("worker1", "localhost", 6001),
+            new WorkerConnection("worker2", "localhost", 6003)
+        );
 
-        server.setOperation(Operation.SIN_PLUS_COS_SQUARE_DIV_SQRT);
+        MasterServer master = new MasterServer(dArray, workers);
+        master.setOperation(Operation.SIN_PLUS_COS_SQUARE_DIV_SQRT);
+        master.start();
 
-        List<WorkerConnection> workers = new ArrayList<>();
-        workers.add(new WorkerConnection("worker1", "localhost", 6001));
-        workers.add(new WorkerConnection("worker2", "localhost", 6002));
-
-        List<WorkerConnection> backups = new ArrayList<>();
-        backups.add(new WorkerConnection("worker3", "localhost", 6003));
-
-        server.registerWorkers(workers);
-        server.registerBackupWorkers(backups);
-        server.start();
-
-        try {
-            Thread.sleep(3000);
-            double[] result = server.getFinalResult();
-
-            if (result != null) {
-                System.out.println("🔍 Resultado recuperado desde main:");
-                for (double v : result) {
-                    System.out.print(v + " ");
-                }
-                System.out.println();
-            } else {
-                System.out.println("❗ El resultado aún no está listo.");
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Ejemplo de getFinalResult
+        double[] result = master.getFinalResult();
+        System.out.println("🔍 Resultado desde main(): " + Arrays.toString(result));
     }
 }

@@ -1,67 +1,81 @@
 package handler;
 
 import core.DArrayDouble;
-
+import data.Fragment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test para el nuevo MasterServer que usa sendTaskAndGetResult(...)
+ * y ExecutorService para procesar en paralelo.
+ */
 class MasterServerTest {
 
     private MasterServer masterServer;
 
     @BeforeEach
     void setUp() {
+        // Datos de entrada: [1.0, 2.0, 3.0, 4.0], fragmentados en 2 partes => [1,2] y [3,4]
         double[] data = {1.0, 2.0, 3.0, 4.0};
         DArrayDouble dArray = new DArrayDouble(data, 2);
-        masterServer = new MasterServer(6000, dArray, 2);
+
+        // Creamos 2 workers "falsos" que responden inmediatamente con el mismo fragmento
+        WorkerConnection fakeWorker1 = new WorkerConnection("w1", "", 0) {
+            @Override
+            public Map<String, String> sendTaskAndGetResult(Fragment fragment,
+                                                            String taskId,
+                                                            String operation) {
+                // Devuelve result = fragment.getData()
+                return Map.of(
+                    "type",    "result",
+                    "task_id", taskId,
+                    "result",  Arrays.toString(fragment.getData())
+                );
+            }
+        };
+
+        WorkerConnection fakeWorker2 = new WorkerConnection("w2", "", 0) {
+            @Override
+            public Map<String, String> sendTaskAndGetResult(Fragment fragment,
+                                                            String taskId,
+                                                            String operation) {
+                return Map.of(
+                    "type",    "result",
+                    "task_id", taskId,
+                    "result",  Arrays.toString(fragment.getData())
+                );
+            }
+        };
+
+        // Instanciamos el MasterServer con el nuevo constructor
+        masterServer = new MasterServer(
+            dArray,
+            List.of(fakeWorker1, fakeWorker2)
+        );
+        // Definimos la operación (no tiene efecto en los fakeWorkers, pero para mantener la API)
+        masterServer.setOperation("((sin(x) + cos(x))^2) / (sqrt(abs(x)) + 1)");
     }
 
     @Test
-    void testMasterServerHandlesResults() throws Exception {
+    void testMasterServerAssemblesFragmentsCorrectly() {
+        // Ejecutamos la distribución y recolección
         masterServer.start();
 
-        Executors.newSingleThreadExecutor().submit(() -> {
-            try (Socket socket = new Socket("localhost", 6000);
-                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+        // Obtenemos el resultado final
+        double[] result = masterServer.getFinalResult();
+        assertNotNull(result, "El resultado no debe ser null");
 
-                String resultJson = "{\"type\":\"RESULT\",\"task_id\":\"T1\",\"worker_id\":\"worker1\",\"result\":[1.0,2.0]}";
-                out.println(resultJson);
-                socket.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        Executors.newSingleThreadExecutor().submit(() -> {
-            try (Socket socket = new Socket("localhost", 6000);
-                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-                String resultJson = "{\"type\":\"RESULT\",\"task_id\":\"T1\",\"worker_id\":\"worker2\",\"result\":[3.0,4.0]}";
-                out.println(resultJson);
-                socket.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        TimeUnit.SECONDS.sleep(2); // Permite que los hilos terminen y se ensamblen los resultados
-
-        // No se puede acceder al resultado final directamente sin exponer el ResultManager,
-        // pero se puede verificar que no hubo excepciones y el servidor procesó ambas conexiones.
-
-        assertTrue(true, "El servidor ha manejado ambas conexiones sin fallos.");
+        // Debería ser la concatenación exacta de [1,2] y [3,4]
+        assertArrayEquals(
+            new double[]{1.0, 2.0, 3.0, 4.0},
+            result,
+            "El resultado final debe ser [1.0, 2.0, 3.0, 4.0]"
+        );
     }
 }

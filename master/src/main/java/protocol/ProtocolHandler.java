@@ -1,5 +1,6 @@
 package protocol;
 
+import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,47 +66,39 @@ public class ProtocolHandler {
     }
 
     public static Map<String, String> fromJson(String json) {
+        // Parseamos el texto JSON a un objeto org.json.JSONObject
+        JSONObject obj = new JSONObject(json);
+
+        // Preparamos el mapa de salida
         Map<String, String> map = new HashMap<>();
 
-        json = json.trim();
-        if (!json.startsWith("{") || !json.endsWith("}")) {
-            throw new IllegalArgumentException("JsonParseException: Formato inválido de objeto JSON.");
-        }
-
-        json = json.substring(1, json.length() - 1).trim();
-        if (json.isEmpty()) return map;
-
-        String[] pairs = json.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-
-        for (String pair : pairs) {
-            String[] keyValue = pair.split(":", 2);
-            if (keyValue.length != 2) {
-                throw new IllegalArgumentException("JsonParseException: Clave-valor mal formado.");
-            }
-            String key = keyValue[0].trim().replaceAll("^\"|\"$", "");
-            String value = keyValue[1].trim().replaceAll("^\"|\"$", "");
-
-            map.put(key, value);
+        // Recorremos cada clave del JSON
+        for (String key : obj.keySet()) {
+            // Obtenemos el valor y lo guardamos como String completo
+            // (si es un array, get().toString() preserva los corchetes y comas)
+            Object val = obj.get(key);
+            map.put(key, val == null ? null : val.toString());
         }
 
         return map;
     }
+    
 
-    public static Map<String, Object> createTaskMessage(String taskId, double[] fragment, String operation, String sendResultTo) {
+    public static Map<String, Object> createTaskMessage(String taskId, double[] data, String operation, String sendResultTo) {
         Map<String, Object> message = new HashMap<>();
-        message.put("type", "TASK");
+        message.put("type", "task");
         message.put("task_id", taskId);
-        message.put("fragment", fragment);
+        message.put("data", data);
         message.put("operation", operation);
         message.put("send_result_to", sendResultTo);
         return message;
     }
 
-    public static Map<String, Object> createTaskMessage(String taskId, int[] fragment, String operation, String sendResultTo) {
+    public static Map<String, Object> createTaskMessage(String taskId, int[] data, String operation, String sendResultTo) {
         Map<String, Object> message = new HashMap<>();
         message.put("type", "TASK");
         message.put("task_id", taskId);
-        message.put("fragment", fragment);
+        message.put("data", data);
         message.put("operation", operation);
         message.put("send_result_to", sendResultTo);
         return message;

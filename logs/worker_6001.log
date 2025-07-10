@@ -1,0 +1,162 @@
+[2025-07-10 04:37:08] INFO Worker principal escuchando en 0.0.0.0:6001
+[2025-07-10 04:37:08] INFO ReplicaManager arranca réplica: python3 worker_node.py --host 0.0.0.0 --port 6002
+[2025-07-10 04:37:08] INFO ReplicaManager arrancado
+[2025-07-10 04:37:08] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:08] INFO [Handler] conexión de ('127.0.0.1', 46820)
+[2025-07-10 04:37:08] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:08] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:08] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:13] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:13] INFO [Handler] conexión de ('127.0.0.1', 46834)
+[2025-07-10 04:37:13] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:13] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:13] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:18] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:18] INFO [Handler] conexión de ('127.0.0.1', 50294)
+[2025-07-10 04:37:18] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:18] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:18] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:23] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:23] INFO [Handler] conexión de ('127.0.0.1', 50306)
+[2025-07-10 04:37:23] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:23] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:23] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:28] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:28] INFO [Handler] conexión de ('127.0.0.1', 45156)
+[2025-07-10 04:37:28] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:28] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:28] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:33] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:33] INFO [Handler] conexión de ('127.0.0.1', 45162)
+[2025-07-10 04:37:33] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:33] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:33] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:38] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:38] INFO [Handler] conexión de ('127.0.0.1', 56056)
+[2025-07-10 04:37:38] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:38] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:38] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:43] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:43] INFO [Handler] conexión de ('127.0.0.1', 56064)
+[2025-07-10 04:37:43] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:43] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:43] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:48] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:48] INFO [Handler] conexión de ('127.0.0.1', 60274)
+[2025-07-10 04:37:48] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:48] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:48] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:53] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:53] INFO [Handler] conexión de ('127.0.0.1', 60286)
+[2025-07-10 04:37:53] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:53] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:53] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:37:58] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:37:58] INFO [Handler] conexión de ('127.0.0.1', 58688)
+[2025-07-10 04:37:58] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:37:58] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:37:58] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:03] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:03] INFO [Handler] conexión de ('127.0.0.1', 58700)
+[2025-07-10 04:38:03] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:03] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:03] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:08] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:08] INFO [Handler] conexión de ('127.0.0.1', 50810)
+[2025-07-10 04:38:08] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:08] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:08] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:13] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:13] INFO [Handler] conexión de ('127.0.0.1', 50818)
+[2025-07-10 04:38:13] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:13] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:13] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:18] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:18] INFO [Handler] conexión de ('127.0.0.1', 42626)
+[2025-07-10 04:38:18] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:18] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:18] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:23] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:23] INFO [Handler] conexión de ('127.0.0.1', 42632)
+[2025-07-10 04:38:23] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:23] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:23] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:28] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:28] INFO [Handler] conexión de ('127.0.0.1', 60420)
+[2025-07-10 04:38:28] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:28] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:28] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:33] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:33] INFO [Handler] conexión de ('127.0.0.1', 60428)
+[2025-07-10 04:38:33] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:33] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:33] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:38] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:38] INFO [Handler] conexión de ('127.0.0.1', 53850)
+[2025-07-10 04:38:38] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:38] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:38] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:43] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:43] INFO [Handler] conexión de ('127.0.0.1', 53854)
+[2025-07-10 04:38:43] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:43] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:43] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:48] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:48] INFO [Handler] conexión de ('127.0.0.1', 38008)
+[2025-07-10 04:38:48] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:48] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:48] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:53] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:53] INFO [Handler] conexión de ('127.0.0.1', 38014)
+[2025-07-10 04:38:53] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:53] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:53] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:38:58] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:38:58] INFO [Handler] conexión de ('127.0.0.1', 35898)
+[2025-07-10 04:38:58] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:38:58] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:38:58] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:03] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:39:03] INFO [Handler] conexión de ('127.0.0.1', 35910)
+[2025-07-10 04:39:03] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:39:03] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:03] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:08] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:39:08] INFO [Handler] conexión de ('127.0.0.1', 35190)
+[2025-07-10 04:39:08] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:39:08] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:08] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:13] INFO [Handler] conexión de ('127.0.0.1', 35202)
+[2025-07-10 04:39:13] DEBUG [Handler] raw recibidos: b'{"type":"heartbeat","data":[],"operation":""}'
+[2025-07-10 04:39:13] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:13] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:13] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:39:13] INFO [Handler] conexión de ('127.0.0.1', 35218)
+[2025-07-10 04:39:13] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:39:13] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:13] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:18] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:39:18] INFO [Handler] conexión de ('127.0.0.1', 36798)
+[2025-07-10 04:39:18] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:39:18] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:18] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:23] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:39:23] INFO [Handler] conexión de ('127.0.0.1', 36800)
+[2025-07-10 04:39:23] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:39:23] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:23] DEBUG [Handler] enviando HEARTBEAT_ACK
+[2025-07-10 04:39:26] INFO [Handler] conexión de ('127.0.0.1', 36802)
+[2025-07-10 04:39:26] DEBUG [Handler] raw recibidos: b'{"data":[1.0,2.0],"task_id":"T1","type":"TASK","send_result_to":"localhost:6001","operation":"((sin(x) + cos(x))^2) / (sqrt(abs(x)) + 1)"}'
+[2025-07-10 04:39:26] DEBUG [Handler] parsed JSON: {'data': [1.0, 2.0], 'task_id': 'T1', 'type': 'TASK', 'send_result_to': 'localhost:6001', 'operation': '((sin(x) + cos(x))^2) / (sqrt(abs(x)) + 1)'}
+[2025-07-10 04:39:26] ERROR [Handler] mensaje inválido: 'TASK' is not one of ['task', 'heartbeat']
+
+Failed validating 'enum' in schema['properties']['type']:
+    {'enum': ['task', 'heartbeat'], 'type': 'string'}
+
+On instance['type']:
+    'TASK'
+[2025-07-10 04:39:28] DEBUG Heartbeat enviado al primario
+[2025-07-10 04:39:28] INFO [Handler] conexión de ('127.0.0.1', 52060)
+[2025-07-10 04:39:28] DEBUG [Handler] raw recibidos: b'{"type": "heartbeat", "data": [], "operation": ""}'
+[2025-07-10 04:39:28] DEBUG [Handler] parsed JSON: {'type': 'heartbeat', 'data': [], 'operation': ''}
+[2025-07-10 04:39:28] DEBUG [Handler] enviando HEARTBEAT_ACK
